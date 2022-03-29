@@ -3,7 +3,6 @@ import os
 import json
 import concurrent.futures
 import threading
-import pandas as pd
 
 import singer
 from singer import utils, metadata
@@ -171,25 +170,8 @@ def query_report(date_to_poll,
     # Records transformation as per DES, for 1:1 mapping
     transformed_records = transform_records(record_list, schema)
 
-    df = pd.DataFrame(transformed_records)
-    # shitty legacy transforms
-    if "cost" in df:
-        df["cost"] = df["cost"].apply(lambda x: int(x) / 1000000)
-
-    df["created_ts"] = str(date_to_poll)
-    df["account_id"] = adwords_account_id
-
-    # Google ads to google adwords compat transforms
-    for column in df.columns:
-        if column.find("rate") != -1:
-            df[column] = pd.to_numeric(df[column], errors='coerce')
-        elif column in ("target_cpa", "cpc_bid") or column.find("search_") == 0:
-            df[column] = df[column].astype(str)
-
-    df = df.applymap(lambda x: None if str(x).strip() in ["--", "nan", "NAN"] else x)
-
     with LOCK:
-        records += df.to_dict(orient="records")
+        records += transformed_records
 
 
 def get_report_fields_and_headers(schema):
@@ -261,6 +243,8 @@ def sync(config, state, catalog):
             with singer.metrics.record_counter(stream.tap_stream_id) as counter:
                 for row in records:
                     # Type Conversation and Transformation
+                    row["created_ts"] = str(date_to_poll)
+                    row["account_id"] = adwords_account_id
                     transformed_data = transform(row, schema, metadata=mdata)
 
                     # write one or more rows to the stream:

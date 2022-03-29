@@ -12,7 +12,6 @@ setup(
     install_requires=[
         # NB: Pin these to a more specific version for tap reliability
         "singer-python==5.12.2",
-        "pandas",
         "google-ads==15.0.0"
     ],
     entry_points="""
