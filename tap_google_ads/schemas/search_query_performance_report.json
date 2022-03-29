@@ -1,0 +1,26 @@
+{
+  "type": ["null", "object"],
+  "properties": {
+    "created_ts": {"type": ["null", "string"], "format": "date-time"},
+    "account_id": {"type": ["null", "string"]},
+    "segments__keyword__ad_group_criterion": {"type": ["null", "string"]},
+    "customer__descriptive_name": {"type": ["null", "string"]},
+    "customer__currency_code": {"type": ["null", "string"]},
+    "ad_group__id": {"type": ["null", "integer"]},
+    "ad_group__name": {"type": ["null", "string"]},
+    "metrics__all_conversions": {"type": ["null", "number"]},
+    "metrics__all_conversions_from_interactions_rate": {"type": ["null", "number"]},
+    "metrics__all_conversions_value": {"type": ["null", "number"]},
+    "campaign__id": {"type": ["null", "integer"]},
+    "campaign__name": {"type": ["null", "string"]},
+    "campaign__status": {"type": ["null", "string"]},
+    "metrics__clicks": {"type": ["null", "integer"]},
+    "metrics__conversions": {"type": ["null", "number"]},
+    "metrics__cost_micros": {"type": ["null", "number"]},
+    "segments__day_of_week": {"type": ["null", "string"]},
+    "metrics__impressions": {"type": ["null", "integer"]},
+    "metrics__interactions": {"type": ["null", "integer"]},
+    "segments__keyword__info__text": {"type": ["null", "string"]},
+    "search_term_view__search_term": {"type": ["null", "string"]}
+  }
+}

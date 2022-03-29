@@ -1,0 +1,19 @@
+{
+  "type": ["null", "object"],
+  "properties": {
+    "created_ts": {"type": ["null", "string"], "format": "date-time"},
+    "account_id": {"type": ["null", "string"]},
+    "campaign__id": {"type": ["null", "integer"]},
+    "campaign__name": {"type": ["null", "string"]},
+    "metrics__ctr": {"type": ["null", "number"]},
+    "metrics__conversions": {"type": ["null", "number"]},
+    "metrics__clicks": {"type": ["null", "integer"]},
+    "metrics__cost_micros": {"type": ["null", "number"]},
+    "metrics__impressions": {"type": ["null", "integer"]},
+    "metrics__conversions_value": {"type": ["null", "number"]},
+    "segments__ad_network_type": {"type": ["null", "string"]},
+    "customer__currency_code": {"type": ["null", "string"]},
+    "segments__device": {"type": ["null", "string"]},
+    "metrics__search_impression_share": {"type": ["null", "number"]}
+  }
+}

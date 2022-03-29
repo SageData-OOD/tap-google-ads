@@ -1,0 +1,30 @@
+{
+  "type": ["null", "object"],
+  "properties": {
+    "created_ts": {"type": ["null", "string"], "format": "date-time"},
+    "account_id": {"type": ["null", "string"]},
+    "customer__descriptive_name": {"type": ["null", "string"]},
+    "campaign__name": {"type": ["null", "string"]},
+    "campaign__id": {"type": ["null", "integer"]},
+    "ad_group__name": {"type": ["null", "string"]},
+    "ad_group__id": {"type": ["null", "integer"]},
+    "ad_group__cpc_bid_micros": {"type": ["null", "string"]},
+    "ad_group__effective_target_cpa_micros": {"type": ["null", "string"]},
+    "ad_group__effective_target_cpa_source": { "type": ["null", "string"]},
+    "customer__currency_code": {"type": ["null", "string"]},
+    "segments__device": {"type": ["null", "string"]},
+    "metrics__impressions": {"type": ["null", "number"]},
+    "metrics__clicks": {"type": ["null", "number"]},
+    "metrics__cost_micros": {"type": ["null", "number"]},
+    "metrics__search_absolute_top_impression_share": {"type": ["null", "number"]},
+    "metrics__search_budget_lost_absolute_top_impression_share": {"type": ["null", "number"]},
+    "metrics__search_budget_lost_top_impression_share": {"type": ["null", "number"]},
+    "metrics__search_exact_match_impression_share": {"type": ["null", "number"]},
+    "metrics__search_impression_share": {"type": ["null", "number"]},
+    "metrics__search_rank_lost_absolute_top_impression_share": {"type": ["null", "number"]},
+    "metrics__search_rank_lost_impression_share": {"type": ["null", "number"]},
+    "metrics__search_rank_lost_top_impression_share": {"type": ["null", "number"]},
+    "metrics__search_top_impression_share": {"type": ["null", "number"]},
+    "metrics__top_impression_percentage": {"type": ["null", "number"]}
+  }
+}

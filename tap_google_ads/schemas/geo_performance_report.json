@@ -1,0 +1,18 @@
+{
+  "type": ["null", "object"],
+  "properties": {
+    "created_ts": {"type": ["null", "string"], "format": "date-time"},
+    "account_id": {"type": ["null", "string"]},
+    "geographic_view__country_criterion_id": {"type": ["null", "integer"]},
+    "customer__descriptive_name": {"type": ["null", "string"]},
+    "campaign__name": {"type": ["null", "string"]},
+    "campaign__id": {"type": ["null", "integer"]},
+    "ad_group__name": {"type": ["null", "string"]},
+    "ad_group__id": {"type": ["null", "integer"]},
+    "segments__device": {"type": ["null", "string"]},
+    "metrics__impressions": {"type": ["null", "integer"]},
+    "metrics__clicks": {"type": ["null", "integer"]},
+    "metrics__cost_micros": {"type": ["null", "number"]},
+    "customer__currency_code": {"type": ["null", "string"]}
+  }
+}

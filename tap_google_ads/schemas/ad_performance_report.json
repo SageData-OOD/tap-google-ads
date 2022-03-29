@@ -1,0 +1,29 @@
+{
+  "type": ["null", "object"],
+  "properties": {
+    "created_ts": {"type": ["null", "string"], "format": "date-time"},
+    "account_id": {"type": ["null", "string"]},
+    "campaign__id": {"type": ["null", "integer"]},
+    "campaign__name": {"type": ["null", "string"]},
+    "ad_group__id": {"type": ["null", "integer"]},
+    "ad_group__name": {"type": ["null", "string"]},
+    "ad_group_ad__ad__id": {"type": ["null", "integer"]},
+    "ad_group_ad__ad__type": {"type": ["null", "string"]},
+    "ad_group_ad__ad__expanded_text_ad__headline_part1": {"type": ["null", "string"]},
+    "ad_group_ad__ad__expanded_text_ad__headline_part2": {"type": ["null", "string"]},
+    "ad_group_ad__ad__expanded_text_ad__description": {"type": ["null", "string"]},
+    "metrics__ctr": {"type": ["null", "number"]},
+    "metrics__conversions": {"type": ["null", "number"]},
+    "metrics__clicks": {"type": ["null", "integer"]},
+    "metrics__cost_micros": {"type": ["null", "number"]},
+    "metrics__impressions": {"type": ["null", "integer"]},
+    "metrics__conversions_value": {"type": ["null", "number"]},
+    "segments__ad_network_type": {"type": ["null", "string"]},
+    "customer__currency_code": {"type": ["null", "string"]},
+    "segments__device": {"type": ["null", "string"]},
+    "ad_group_ad__ad__final_mobile_urls": {"type": ["null", "string"]},
+    "ad_group_ad__ad__final_urls": {"type": ["null", "string"]},
+    "ad_group_ad__ad__final_url_suffix": {"type": ["null", "string"]},
+    "ad_group_ad__ad__url_custom_parameters": {"type": ["null", "string"]}
+  }
+}
