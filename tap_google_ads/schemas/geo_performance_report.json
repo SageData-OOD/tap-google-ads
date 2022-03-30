@@ -1,14 +1,10 @@
 {
   "type": ["null", "object"],
   "properties": {
-    "ad_group.base_ad_group": {"type": ["null", "string"]},
     "ad_group.id": {"type": ["null", "integer"]},
     "ad_group.name": {"type": ["null", "string"]},
-    "ad_group.status": {"type": ["null", "string"]},
-    "campaign.base_campaign": {"type": ["null", "string"]},
     "campaign.id": {"type": ["null", "integer"]},
     "campaign.name": {"type": ["null", "string"]},
-    "campaign.status": {"type": ["null", "string"]},
     "customer.currency_code": {"type": ["null", "string"]},
     "customer.id": {"type": ["null", "integer"]},
     "customer.status": {"type": ["null", "string"]},
@@ -42,12 +38,6 @@
     "metrics.video_view_rate": {"type": ["null", "number"]},
     "metrics.video_views": {"type": ["null", "integer"]},
     "metrics.view_through_conversions": {"type": ["null", "integer"]},
-    "segments.ad_network_type": {"type": ["null", "string"]},
-    "segments.date": {"type": ["null", "string"], "format": "datetime"},
-    "segments.day_of_week": {"type": ["null", "string"]},
-    "segments.month": {"type": ["null", "string"]},
-    "segments.quarter": {"type": ["null", "string"]},
-    "segments.week": {"type": ["null", "string"]},
-    "segments.year": {"type": ["null", "string"]}
+    "segments.date": {"type": ["null", "string"], "format": "datetime"}
   }
 }

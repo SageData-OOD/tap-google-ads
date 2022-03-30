@@ -144,11 +144,6 @@
     "metrics.video_view_rate": {"type": ["null", "number"]},
     "metrics.video_views": {"type": ["null", "integer"]},
     "metrics.view_through_conversions": {"type": ["null", "integer"]},
-    "segments.ad_network_type": {"type": ["null", "string"]},
-    "segments.date": {"type": ["null", "string"], "format": "datetime"},
-    "segments.day_of_week": {"type": ["null", "string"]},
-    "segments.month": {"type": ["null", "string"]},
-    "segments.quarter": {"type": ["null", "string"]},
-    "segments.week": {"type": ["null", "string"]},
-    "segments.year": {"type": ["null", "string"]}}
+    "segments.date": {"type": ["null", "string"], "format": "datetime"}
+  }
 }

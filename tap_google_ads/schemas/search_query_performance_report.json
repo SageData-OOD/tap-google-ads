@@ -7,7 +7,6 @@
     "ad_group.status": {"type": ["null", "string"]},
     "ad_group_ad.ad.id": {"type": ["null", "integer"]},
     "ad_group_ad.ad.name": {"type": ["null", "string"]},
-    "ad_group_ad.status": {"type": ["null", "string"]},
     "campaign.base_campaign": {"type": ["null", "string"]},
     "campaign.id": {"type": ["null", "integer"]},
     "campaign.name": {"type": ["null", "string"]},
@@ -57,11 +56,6 @@
     "search_term_view.resource_name": {"type": ["null", "string"]},
     "search_term_view.search_term": {"type": ["null", "string"]},
     "search_term_view.status": {"type": ["null", "string"]},
-    "segments.ad_network_type": {"type": ["null", "string"]},
-    "segments.date": {"type": ["null", "string"], "format": "datetime"},
-    "segments.month": {"type": ["null", "string"]},
-    "segments.quarter": {"type": ["null", "string"]},
-    "segments.week": {"type": ["null", "string"]},
-    "segments.year": {"type": ["null", "string"]}
+    "segments.date": {"type": ["null", "string"], "format": "datetime"}
   }
 }
