@@ -21,16 +21,6 @@ LOGGER = singer.get_logger()
 REQUIRED_CONFIG_KEYS = ["start_date", "end_date", "customer_ids", "client_id", "client_secret", "developer_token",
                         "refresh_token"]
 
-REPORT_MAPPINGS = {
-    "ad_performance_report": "ad_group_ad",
-    # Also, it can be: user_location_view
-    "geo_performance_report": "geographic_view",
-    "campaign_performance_report": "campaign",
-    "video_performance_report": "video",
-    "adgroup_performance_report": "ad_group",
-    "search_query_performance_report": "search_term_view"
-}
-
 
 def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
