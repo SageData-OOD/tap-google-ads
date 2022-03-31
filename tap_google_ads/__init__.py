@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 from google.ads.googleads.client import GoogleAdsClient
 from google.protobuf.json_format import MessageToDict
 
-
 WORKER_THREADS = 10
 LOCK = threading.Lock()
 LOGGER = singer.get_logger()
@@ -54,16 +53,15 @@ def get_key_properties(stream_name):
     TODO: IF you add more segments(dimensions) inside schema, you have to append key property list for respected report.
     """
     key_properties = {
-        "ad_performance_report": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                                  "ad_group_ad__ad__id"],
-        "adgroup_performance_report": ["segments__date", "customer__id", "campaign__id", "ad_group__id"],
-        "campaign_performance_report": ["segments__date", "customer__id", "campaign__id"],
-        "geo_performance_report": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                                   "geographic_view__country_criterion_id", "geographic_view__location_type"],
-        "search_query_performance_report": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                                            "search_term_view__search_term", "segments__keyword__info__text"],
-        "video_performance_report": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                                     "ad_group_ad__ad__id", "video__id", "video__channel_id"]
+        "ad_group_ad": ["segments__date", "customer__id", "campaign__id", "ad_group__id", "ad_group_ad__ad__id"],
+        "ad_group": ["segments__date", "customer__id", "campaign__id", "ad_group__id"],
+        "campaign": ["segments__date", "customer__id", "campaign__id"],
+        "geographic_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                            "geographic_view__country_criterion_id", "geographic_view__location_type"],
+        "search_term_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                             "search_term_view__search_term", "segments__keyword__info__text"],
+        "video": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                  "ad_group_ad__ad__id", "video__id", "video__channel_id"]
     }
     return key_properties.get(stream_name, [])
 
@@ -134,9 +132,8 @@ def build_query(stream_id, fields, date_to_poll):
     Generate query as per Google_Ads API V10
     google_ads query builder UI: https://developers.google.cn/google-ads/api/fields/v10/ad_group_ad_query_builder
     """
-    report = REPORT_MAPPINGS[stream_id]
     date = "{:%Y-%m-%d}".format(date_to_poll)
-    query = f'SELECT {",".join(fields)} FROM {report} WHERE segments.date BETWEEN "{date}" AND "{date}"'
+    query = f'SELECT {",".join(fields)} FROM {stream_id} WHERE segments.date BETWEEN "{date}" AND "{date}"'
     return query
 
 
