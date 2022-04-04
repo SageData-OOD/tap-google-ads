@@ -104,6 +104,8 @@ def get_google_ads_field_service(config):
 def get_incompatible_fields(ga_ads_service):
     """
     Return list of incompatible fields for the metrics and segments
+    here - we can't directly get incompatible fields, we received list of selectable fields for each fields.
+         - Hence, to get incompatible fields, we remove selectable from all_fields.
     """
 
     attribute_resource_fields = {}
@@ -113,11 +115,20 @@ def get_incompatible_fields(ga_ads_service):
             f["name"].replace(".", "__"): [selectable.replace(".", "__") for selectable in f.get("selectable_with", [])]
             for f in list_fields
         }
-        attribute_resource_fields.update(list_fields)
-    set_all_fields = {f for f in attribute_resource_fields}
-    incompatible_fields = {field: list(set_all_fields - set(selectable) - {field})
+        attribute_resource_fields[resource] = list_fields
+    all_metrics = [f for f in attribute_resource_fields["metrics"]]
+    all_segments = [f for f in attribute_resource_fields["segments"]]
+
+    # For Metrics, [ all_segments - selectable ], as metrics selectable does not have incompatible metrics
+    incompatible_fields = {field: list(set(all_segments) - set(selectable) - {field})
                            for field, selectable
-                           in attribute_resource_fields.items()}
+                           in attribute_resource_fields["metrics"].items()}
+
+    # For Segments, [ ( all_segments + all_metrics ) - selectable ], as segments selectable can contains
+    # both metrics and segments as incompatible metrics
+    incompatible_fields.update({field: list((set(all_metrics + all_segments)) - set(selectable) - {field})
+                                for field, selectable
+                                in attribute_resource_fields["segments"].items()})
     return incompatible_fields
 
 
