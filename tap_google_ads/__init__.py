@@ -61,7 +61,7 @@ def create_metadata_for_report(schema, tap_stream_id, incompatible_fields):
             inclusion = "automatic" if key in key_properties else "available"
             mdata.append({"breadcrumb": ["properties", key],
                           "metadata": {"inclusion": inclusion,
-                                       "fieldExclusions": incompatible_fields.get(key, [])}
+                                       "fieldExclusions": [["properties", i] for i in incompatible_fields.get(key, [])]}
                           })
 
     return mdata
