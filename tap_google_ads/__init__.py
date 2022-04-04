@@ -25,17 +25,17 @@ def get_key_properties(stream_name, selected_fields=[]):
     It will dynamically generate list of keys based on given selected field segments.
     """
     default_key_properties = {
-        "ad_group_ad": ["segments.date", "customer.id", "campaign.id", "ad_group.id", "ad_group_ad.ad.id"],
-        "ad_group": ["segments.date", "customer.id", "campaign.id", "ad_group.id"],
-        "campaign": ["segments.date", "customer.id", "campaign.id"],
-        "geographic_view": ["segments.date", "customer.id", "campaign.id", "ad_group.id",
-                            "geographic_view.country_criterion_id", "geographic_view.location_type"],
-        "search_term_view": ["segments.date", "customer.id", "campaign.id", "ad_group.id",
-                             "search_term_view.search_term"],
-        "video": ["segments.date", "customer.id", "campaign.id", "ad_group.id",
-                  "ad_group_ad.ad.id", "video.id", "video.channel_id"],
-        "keyword_view": ["segments.date", "customer.id", "campaign.id", "ad_group.id",
-                         "ad_group_criterion.criterion_id", "keyword_view.resource_name"]
+        "ad_group_ad": ["segments__date", "customer__id", "campaign__id", "ad_group__id", "ad_group_ad__ad__id"],
+        "ad_group": ["segments__date", "customer__id", "campaign__id", "ad_group__id"],
+        "campaign": ["segments__date", "customer__id", "campaign__id"],
+        "geographic_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                            "geographic_view__country_criterion_id", "geographic_view__location_type"],
+        "search_term_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                             "search_term_view__search_term"],
+        "video": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                  "ad_group_ad__ad__id", "video__id", "video__channel_id"],
+        "keyword_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                         "ad_group_criterion__criterion_id", "keyword_view__resource_name"]
     }
     key_field_prefixes = KEY_FIELD_PREFIXES[stream_name]
     dynamic_key_fields = [k for k in selected_fields if k.split(".")[0] in key_field_prefixes]
@@ -47,7 +47,7 @@ def create_metadata_for_report(schema, tap_stream_id):
 
     mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available",
                                              "forced-replication-method": "INCREMENTAL",
-                                             "valid-replication-keys": "segments.date",
+                                             "valid-replication-keys": "segments__date",
                                              "table-key-properties": key_properties}}]
 
     for key in schema.properties:
@@ -66,7 +66,8 @@ def create_metadata_for_report(schema, tap_stream_id):
 
 
 def discover(config):
-    raw_schemas = generate_schemas(config)
+    ga_ads_service = get_google_ads_field_service(config)
+    raw_schemas = generate_schemas(ga_ads_service)
     streams = []
     for stream_id, schema in raw_schemas.items():
         stream_metadata = create_metadata_for_report(schema, stream_id)
@@ -131,10 +132,11 @@ def flatten_records(record_list, fields, headers):
 
 def query_report(date_to_poll,
                  stream_id,
-                 dotted_path_fields,
+                 fields,
                  adwords_account_id,
                  googleads_client,
                  records):
+    dotted_path_fields = [f.replace("__", ".") for f in fields]
     query = build_query(stream_id, dotted_path_fields, date_to_poll)
     ga_service = googleads_client.get_service("GoogleAdsService", version="v10")
     streams = ga_service.search_stream(
@@ -152,8 +154,7 @@ def query_report(date_to_poll,
             row_dict = MessageToDict(row._pb, preserving_proto_field_name=True)
             record_list.append(row_dict)
 
-    # headers = [f.replace(".", "__") for f in dotted_path_fields]
-    flattened_records = flatten_records(record_list, dotted_path_fields, dotted_path_fields.copy())
+    flattened_records = flatten_records(record_list, dotted_path_fields, fields)
 
     with LOCK:
         records += flattened_records
@@ -177,7 +178,7 @@ def sync(config, state, catalog):
     # Loop over selected streams in catalog
     for stream in catalog.get_selected_streams(state):
         LOGGER.info("Syncing stream:" + stream.tap_stream_id)
-        bookmark_column = "segments.date"
+        bookmark_column = "segments__date"
         mdata = metadata.to_map(stream.metadata)
         schema = stream.schema.to_dict()
 

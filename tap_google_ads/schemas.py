@@ -85,20 +85,32 @@ def fetch_resource_fields(ga_ads_service, resource_name):
 
     list_fields = query_ads_field_service(ga_ads_service, resource_name + ".%")
     list_fields = {
-        f["name"]: get_property_type(f["data_type"])
+        f["name"].replace(".", "__"): get_property_type(f["data_type"])
         for f in list_fields
     }
     return list_fields
 
 
-def generate_schemas(config):
+def get_google_ads_field_service(config):
     """
-    Dynamically generate schemas for available resources(reports)
+    Return object of GoogleAdsFieldService
     """
-
     config["use_proto_plus"] = True
     googleads_client = GoogleAdsClient.load_from_dict(config)
     ga_ads_service = googleads_client.get_service("GoogleAdsFieldService", version="v10")
+    return ga_ads_service
+
+
+# def get_incompatible_fields(ga_ads_service):
+#     attribute_resource_fields = {}
+#     for resource in ["metrics", "segments"]:
+#         attribute_resource_fields[resource] = fetch_resource_fields(ga_ads_service, resource)
+
+
+def generate_schemas(ga_ads_service):
+    """
+    Dynamically generate schemas for available resources(reports)
+    """
 
     # Fetch common attribute resources fields and refactor the datatype
     attribute_resource_fields = {}
@@ -112,7 +124,7 @@ def generate_schemas(config):
             for name, meta in report_metadata.items():
                 if name in ["metrics", "segments", "attribute_resources"]:
                     for m in meta:
-
+                        m = m.replace(".", "__")
                         # if field name starts with "metrics" or "segments"
                         # E.x. metrics.clicks, segments.device
                         if m.find(name) == 0:
