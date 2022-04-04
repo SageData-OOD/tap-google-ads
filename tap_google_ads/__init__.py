@@ -42,9 +42,8 @@ def get_key_properties(stream_name, selected_fields=[]):
     return list(set(default_key_properties.get(stream_name, []) + dynamic_key_fields))
 
 
-def create_metadata_for_report(schema, tap_stream_id):
+def create_metadata_for_report(schema, tap_stream_id, incompatible_fields):
     key_properties = get_key_properties(tap_stream_id)
-
     mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available",
                                              "forced-replication-method": "INCREMENTAL",
                                              "valid-replication-keys": "segments__date",
@@ -60,17 +59,21 @@ def create_metadata_for_report(schema, tap_stream_id):
                 }])
         else:
             inclusion = "automatic" if key in key_properties else "available"
-            mdata.append({"breadcrumb": ["properties", key], "metadata": {"inclusion": inclusion}})
+            mdata.append({"breadcrumb": ["properties", key],
+                          "metadata": {"inclusion": inclusion,
+                                       "fieldExclusions": incompatible_fields.get(key, [])}
+                          })
 
     return mdata
 
 
 def discover(config):
     ga_ads_service = get_google_ads_field_service(config)
+    incompatible_fields = get_incompatible_fields(ga_ads_service)
     raw_schemas = generate_schemas(ga_ads_service)
     streams = []
     for stream_id, schema in raw_schemas.items():
-        stream_metadata = create_metadata_for_report(schema, stream_id)
+        stream_metadata = create_metadata_for_report(schema, stream_id, incompatible_fields)
         key_properties = get_key_properties(stream_id)
         streams.append(
             CatalogEntry(

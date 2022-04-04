@@ -101,10 +101,24 @@ def get_google_ads_field_service(config):
     return ga_ads_service
 
 
-# def get_incompatible_fields(ga_ads_service):
-#     attribute_resource_fields = {}
-#     for resource in ["metrics", "segments"]:
-#         attribute_resource_fields[resource] = fetch_resource_fields(ga_ads_service, resource)
+def get_incompatible_fields(ga_ads_service):
+    """
+    Return list of incompatible fields for the metrics and segments
+    """
+
+    attribute_resource_fields = {}
+    for resource in ["metrics", "segments"]:
+        list_fields = query_ads_field_service(ga_ads_service, resource + ".%")
+        list_fields = {
+            f["name"].replace(".", "__"): [selectable.replace(".", "__") for selectable in f.get("selectable_with", [])]
+            for f in list_fields
+        }
+        attribute_resource_fields.update(list_fields)
+    set_all_fields = {f for f in attribute_resource_fields}
+    incompatible_fields = {field: list(set_all_fields - set(selectable) - {field})
+                           for field, selectable
+                           in attribute_resource_fields.items()}
+    return incompatible_fields
 
 
 def generate_schemas(ga_ads_service):
