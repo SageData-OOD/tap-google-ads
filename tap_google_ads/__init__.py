@@ -7,12 +7,10 @@ import threading
 import singer
 from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry
-from singer.schema import Schema
 from singer.transform import transform
 from datetime import datetime, timedelta
 
-from google.ads.googleads.client import GoogleAdsClient
-from google.protobuf.json_format import MessageToDict
+from .schemas import *
 
 WORKER_THREADS = 10
 LOCK = threading.Lock()
@@ -22,38 +20,27 @@ REQUIRED_CONFIG_KEYS = ["start_date", "end_date", "customer_ids", "client_id", "
                         "refresh_token"]
 
 
-def get_abs_path(path):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
-
-
-def load_schemas():
-    """ Load schemas from schemas folder """
-    schemas = {}
-    for filename in os.listdir(get_abs_path('schemas')):
-        path = get_abs_path('schemas') + '/' + filename
-        file_raw = filename.replace('.json', '')
-        with open(path) as file:
-            schemas[file_raw] = Schema.from_dict(json.load(file))
-    return schemas
-
-
-def get_key_properties(stream_name):
+def get_key_properties(stream_name, selected_fields=[]):
     """
     Returns list of primary key columns as per report.
-    TODO: IF you add more segments(dimensions) inside schema, you have to append key property list for respected report.
+    It will dynamically generate list of keys based on given selected field segments.
     """
-    key_properties = {
+    default_key_properties = {
         "ad_group_ad": ["segments__date", "customer__id", "campaign__id", "ad_group__id", "ad_group_ad__ad__id"],
         "ad_group": ["segments__date", "customer__id", "campaign__id", "ad_group__id"],
         "campaign": ["segments__date", "customer__id", "campaign__id"],
         "geographic_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
                             "geographic_view__country_criterion_id", "geographic_view__location_type"],
         "search_term_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                             "search_term_view__search_term", "segments__keyword__info__text"],
+                             "search_term_view__search_term"],
         "video": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                  "ad_group_ad__ad__id", "video__id", "video__channel_id"]
+                  "ad_group_ad__ad__id", "video__id", "video__channel_id"],
+        "keyword_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
+                         "ad_group_criterion__criterion_id", "keyword_view__resource_name"]
     }
-    return key_properties.get(stream_name, [])
+    key_field_prefixes = KEY_FIELD_PREFIXES[stream_name]
+    dynamic_key_fields = [k for k in selected_fields if k.split(".")[0] in key_field_prefixes]
+    return list(set(default_key_properties.get(stream_name, []) + dynamic_key_fields))
 
 
 def create_metadata_for_report(schema, tap_stream_id):
@@ -79,8 +66,8 @@ def create_metadata_for_report(schema, tap_stream_id):
     return mdata
 
 
-def discover():
-    raw_schemas = load_schemas()
+def discover(config):
+    raw_schemas = generate_schemas(config)
     streams = []
     for stream_id, schema in raw_schemas.items():
         stream_metadata = create_metadata_for_report(schema, stream_id)
@@ -191,14 +178,16 @@ def sync(config, state, catalog):
     # Loop over selected streams in catalog
     for stream in catalog.get_selected_streams(state):
         LOGGER.info("Syncing stream:" + stream.tap_stream_id)
-        bookmark_column = "date_to_poll"
+        bookmark_column = "segments__date"
         mdata = metadata.to_map(stream.metadata)
         schema = stream.schema.to_dict()
 
+        fields = get_selected_attrs(stream)
+        dynamically_generated_key_fields = get_key_properties(stream.tap_stream_id, fields)
         singer.write_schema(
             stream_name=stream.tap_stream_id,
             schema=schema,
-            key_properties=stream.key_properties,
+            key_properties=dynamically_generated_key_fields
         )
         futures = []
         records = []
@@ -207,13 +196,12 @@ def sync(config, state, catalog):
             config["customer_ids"]))
         LOGGER.info("Download reports with max workers: %d", max_worker_threads)
 
-        start_date = singer.get_bookmark(state, stream.tap_stream_id, bookmark_column) \
+        bookmark = singer.get_bookmark(state, stream.tap_stream_id, bookmark_column) \
             if state.get("bookmarks", {}).get(stream.tap_stream_id) else config["start_date"]
 
-        date_to_poll = datetime.strptime(start_date, "%Y-%m-%d")
+        date_to_poll = datetime.strptime(bookmark, "%Y-%m-%d")
         end_date = datetime.strptime(config["end_date"], "%Y-%m-%d")
         config["use_proto_plus"] = True
-        fields = get_selected_attrs(stream)
 
         while date_to_poll <= end_date:
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker_threads) as executor:
@@ -248,8 +236,10 @@ def sync(config, state, catalog):
                     # write one or more rows to the stream:
                     singer.write_records(stream.tap_stream_id, [transformed_data])
                     counter.increment()
-            state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, str(date_to_poll.date()))
-            singer.write_state(state)
+                    bookmark = max([bookmark, transformed_data[bookmark_column]])
+            if records:
+                state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, bookmark)
+                singer.write_state(state)
             date_to_poll += timedelta(days=1)
 
 
@@ -260,14 +250,14 @@ def main():
 
     # If discover flag was passed, run discovery mode and dump output to stdout
     if args.discover:
-        catalog = discover()
+        catalog = discover(args.config)
         catalog.dump()
     # Otherwise run in sync mode
     else:
         if args.catalog:
             catalog = args.catalog
         else:
-            catalog = discover()
+            catalog = discover(args.config)
         state = args.state or {}
         sync(args.config, state, catalog)
 
