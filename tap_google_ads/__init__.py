@@ -192,8 +192,6 @@ def sync(config, state, catalog):
             schema=schema,
             key_properties=dynamically_generated_key_fields
         )
-        futures = []
-        records = []
 
         max_worker_threads = min(WORKER_THREADS, len(
             config["customer_ids"]))
@@ -207,6 +205,9 @@ def sync(config, state, catalog):
         config["use_proto_plus"] = True
 
         while date_to_poll <= end_date:
+            # These must be here to reset records/futures from previous date
+            futures = []
+            records = []          
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker_threads) as executor:
                 for adwords_account_id in config["customer_ids"]:
                     if "login_customer_id" in config:
