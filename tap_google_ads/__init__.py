@@ -241,9 +241,15 @@ def sync(config, state, catalog):
                     singer.write_records(stream.tap_stream_id, [transformed_data])
                     counter.increment()
                     bookmark = max([bookmark, transformed_data[bookmark_column]])
-            if records:
-                state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, bookmark)
-                singer.write_state(state)
+
+            # DP: Google ads produces tons of data and while this check is the correct
+            # thing to do in the general case I will disable it
+            
+            # if records:
+
+            state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, bookmark)
+            singer.write_state(state)
+
             date_to_poll += timedelta(days=1)
 
 
