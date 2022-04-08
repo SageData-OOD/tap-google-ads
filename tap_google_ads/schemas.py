@@ -46,10 +46,10 @@ KEY_FIELD_PREFIXES = {
     "ad_group": ['segments'],
     "ad_group_ad": ['segments'],
     "campaign": ['segments'],
-    "geographic_view": ['segments', 'ad_group', 'campaign'],
+    "geographic_view": ['segments'],
     "keyword_view": ['segments'],
-    "search_term_view": ['segments', 'ad_group_ad'],
-    "video": ['segments', 'ad_group', 'ad_group_ad', 'campaign']
+    "search_term_view": ['segments'],
+    "video": ['segments']
 }
 
 

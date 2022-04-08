@@ -29,7 +29,7 @@ def get_key_properties(stream_name, selected_fields=[]):
         "ad_group": ["segments__date", "customer__id", "campaign__id", "ad_group__id"],
         "campaign": ["segments__date", "customer__id", "campaign__id"],
         "geographic_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                            "geographic_view__country_criterion_id", "geographic_view__location_type"],
+                            "geographic_view__country_criterion_id"],
         "search_term_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
                              "search_term_view__search_term"],
         "video": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
@@ -38,7 +38,7 @@ def get_key_properties(stream_name, selected_fields=[]):
                          "ad_group_criterion__criterion_id", "keyword_view__resource_name"]
     }
     key_field_prefixes = KEY_FIELD_PREFIXES[stream_name]
-    dynamic_key_fields = [k for k in selected_fields if k.split(".")[0] in key_field_prefixes]
+    dynamic_key_fields = [k for k in selected_fields if k.split("__")[0] in key_field_prefixes]
     return list(set(default_key_properties.get(stream_name, []) + dynamic_key_fields))
 
 
