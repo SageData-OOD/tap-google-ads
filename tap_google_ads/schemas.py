@@ -64,7 +64,8 @@ def get_property_type(prop):
 def query_ads_field_service(ga_ads_service, resource):
     """
     Query to Google Ads Filed Service to get resource's metadata
-    ref: https://developers.google.com/google-ads/api/reference/rpc/v10/GoogleAdsFieldService#searchgoogleadsfields
+    #searchgoogleadsfields
+    ref: https://developers.google.com/google-ads/api/reference/rpc/v10/GoogleAdsFieldService
     """
 
     query = "SELECT name, data_type, selectable_with, metrics, segments, enum_values, attribute_resources" \
@@ -97,7 +98,8 @@ def get_google_ads_field_service(config):
     """
     config["use_proto_plus"] = True
     googleads_client = GoogleAdsClient.load_from_dict(config)
-    ga_ads_service = googleads_client.get_service("GoogleAdsFieldService", version="v10")
+    ga_ads_service = googleads_client.get_service(
+        "GoogleAdsFieldService", version="v10")
     return ga_ads_service
 
 
@@ -132,6 +134,31 @@ def get_incompatible_fields(ga_ads_service):
     return incompatible_fields
 
 
+def create_report_definition(ga_ads_service,
+                             report,
+                             attribute_resource_fields,
+                             schema):
+    report_schema = {}
+    for report_metadata in query_ads_field_service(ga_ads_service, report):
+        for name, meta in report_metadata.items():
+            if name in ["metrics", "segments", "attribute_resources"]:
+                for m in meta:
+                    m = m.replace(".", "__")
+                    # if field name starts with "metrics" or "segments"
+                    # E.x. metrics.clicks, segments.device
+                    if m.find(name) == 0:
+                        report_schema[m] = attribute_resource_fields[name][m]
+
+                    # Along with outer scope attribute_resources, we can have some attribute_resources as a part
+                    # of "metrics" or "segments", Hence updating all of them from attribute_resource_fields.
+                    # E.x. ad_group, ad_group_ad, campaign
+                    elif m.find(name) != 0:
+                        report_schema.update(attribute_resource_fields[m])
+    report_schema.update(fetch_resource_fields(ga_ads_service, report))
+    schema[report] = Schema.from_dict({"type": ["null", "object"],
+                                       "properties": report_schema})
+
+
 def generate_schemas(ga_ads_service):
     """
     Dynamically generate schemas for available resources(reports)
@@ -140,28 +167,22 @@ def generate_schemas(ga_ads_service):
     # Fetch common attribute resources fields and refactor the datatype
     attribute_resource_fields = {}
     for resource in LIST_ATTRIBUTE_RESOURCES:
-        attribute_resource_fields[resource] = fetch_resource_fields(ga_ads_service, resource)
+        attribute_resource_fields[resource] = fetch_resource_fields(
+            ga_ads_service, resource)
 
+    import concurrent.futures
+
+    futures = []
     schema = {}
     for report in REPORTS:
-        report_schema = {}
-        for report_metadata in query_ads_field_service(ga_ads_service, report):
-            for name, meta in report_metadata.items():
-                if name in ["metrics", "segments", "attribute_resources"]:
-                    for m in meta:
-                        m = m.replace(".", "__")
-                        # if field name starts with "metrics" or "segments"
-                        # E.x. metrics.clicks, segments.device
-                        if m.find(name) == 0:
-                            report_schema[m] = attribute_resource_fields[name][m]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures.append(executor.submit(create_report_definition,
+                                            ga_ads_service,
+                                            report,
+                                            attribute_resource_fields,
+                                            schema))
 
-                        # Along with outer scope attribute_resources, we can have some attribute_resources as a part
-                        # of "metrics" or "segments", Hence updating all of them from attribute_resource_fields.
-                        # E.x. ad_group, ad_group_ad, campaign
-                        elif m.find(name) != 0:
-                            report_schema.update(attribute_resource_fields[m])
-        report_schema.update(fetch_resource_fields(ga_ads_service, report))
-        schema[report] = Schema.from_dict({"type": ["null", "object"],
-                                           "properties": report_schema})
+        for future in concurrent.futures.as_completed(futures):
+            future.result()
 
     return schema
