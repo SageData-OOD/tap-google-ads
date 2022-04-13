@@ -24,10 +24,12 @@ def get_key_properties(stream_name, selected_fields=[]):
     Returns list of primary key columns as per report.
     It will dynamically generate list of keys based on given selected field segments.
     """
+
     default_key_properties = {
         "ad_group_ad": ["segments__date", "customer__id", "campaign__id", "ad_group__id", "ad_group_ad__ad__id"],
         "ad_group": ["segments__date", "customer__id", "campaign__id", "ad_group__id"],
         "campaign": ["segments__date", "customer__id", "campaign__id"],
+        "click_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id", "click_view__gclid"],
         "geographic_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
                             "geographic_view__country_criterion_id"],
         "search_term_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
@@ -96,6 +98,7 @@ def json_value_from_dotted_path(path, json_obj):
          if key not found then
           ->  return None, 1
     """
+
     keys = path.split('.')
     rv = json_obj
     for key in keys:
@@ -112,8 +115,13 @@ def build_query(stream_id, fields, date_to_poll):
     Generate query as per Google_Ads API V10
     google_ads query builder UI: https://developers.google.cn/google-ads/api/fields/v10/ad_group_ad_query_builder
     """
+
     date = "{:%Y-%m-%d}".format(date_to_poll)
-    query = f'SELECT {",".join(fields)} FROM {stream_id} WHERE segments.date BETWEEN "{date}" AND "{date}"'
+    query = f'SELECT {",".join(fields)} FROM {stream_id} WHERE segments.date '
+
+    # For "click_view" report query, `WHERE` clause specifying a single day within the last 90 days.
+    query += f'BETWEEN "{date}" AND "{date}"' if stream_id != "click_view" else f'= "{date}"'
+
     return query
 
 
@@ -122,6 +130,7 @@ def flatten_records(record_list, fields, headers):
     It will flatten the records as per schema fields
     Ex. {"abc": {"xyz": {"mnp": 1}}}  ->  {"abc__xyz__mnp": 1}
     """
+
     transformed_records = []
     for rec in record_list:
         dic = {}
@@ -168,6 +177,7 @@ def get_selected_attrs(stream):
     List down user selected fields
     requires [ "selected": true ] inside property metadata
     """
+
     list_attrs = list()
     for md in stream.metadata:
         if md["breadcrumb"]:
@@ -175,6 +185,20 @@ def get_selected_attrs(stream):
                 list_attrs.append(md["breadcrumb"][-1])
 
     return list_attrs
+
+
+def get_verified_date_to_poll(stream_id, date_to_poll):
+    """
+    For "click_view" report query, `WHERE` clause specifying a single day within the last 90 days of current date.
+    so, if date_to_poll is less than current date, it will be changed to the least possible date value (today - 90 days)
+    """
+
+    if stream_id == "click_view":
+        minimal_date_to_poll = datetime.utcnow() - timedelta(days=90)
+        if date_to_poll < minimal_date_to_poll:
+            date_to_poll = minimal_date_to_poll
+
+    return date_to_poll
 
 
 def sync(config, state, catalog):
@@ -200,7 +224,8 @@ def sync(config, state, catalog):
         bookmark = singer.get_bookmark(state, stream.tap_stream_id, bookmark_column) \
             if state.get("bookmarks", {}).get(stream.tap_stream_id) else config["start_date"]
 
-        date_to_poll = datetime.strptime(bookmark, "%Y-%m-%d")
+        date_to_poll = get_verified_date_to_poll(stream.tap_stream_id, datetime.strptime(bookmark, "%Y-%m-%d"))
+
         end_date = datetime.strptime(config["end_date"], "%Y-%m-%d")
         config["use_proto_plus"] = True
 

@@ -7,6 +7,7 @@ REPORTS = [
     "ad_group",
     "ad_group_ad",
     "campaign",
+    "click_view",
     "geographic_view",
     "keyword_view",
     "search_term_view",
@@ -42,10 +43,13 @@ FIELDS_TYPES_MAPPING = {
 }
 
 # This prefix helps to identify primary key fields(segments) in order to generate dynamic PK.
+# Mostly the Fields under Segments section, but here we are speculating just by selecting segments.
+# Ref(for `video` report): https://developers.google.com/google-ads/api/fields/v10/video_query_builder
 KEY_FIELD_PREFIXES = {
     "ad_group": ['segments'],
     "ad_group_ad": ['segments'],
     "campaign": ['segments'],
+    "click_view": ['segments'],
     "geographic_view": ['segments'],
     "keyword_view": ['segments'],
     "search_term_view": ['segments'],
