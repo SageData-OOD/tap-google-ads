@@ -71,14 +71,16 @@ def query_ads_field_service(ga_ads_service, resource):
     ref: https://developers.google.com/google-ads/api/reference/rpc/v10/GoogleAdsFieldService#searchgoogleadsfields
     """
 
-    query = "SELECT name, data_type, selectable_with, metrics, segments, enum_values, attribute_resources" \
+    query = "SELECT name, data_type, selectable_with, metrics, segments, enum_values, attribute_resources, selectable" \
             f" WHERE name LIKE '{resource}'"
-
+    non_selectable_fields = []
     streams = ga_ads_service.search_google_ads_fields(query=query)
     record_list = []
     for row in streams:
         row_dict = MessageToDict(row._pb, preserving_proto_field_name=True)
-        record_list.append(row_dict)
+        record_list.append(row_dict) if row_dict.get("selectable", True) else non_selectable_fields.append(row_dict)
+
+    record_list += [f for f in non_selectable_fields if resource == f["name"]]
     return record_list
 
 
