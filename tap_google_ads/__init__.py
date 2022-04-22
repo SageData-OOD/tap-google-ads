@@ -51,7 +51,13 @@ def create_metadata_for_report(schema, tap_stream_id, incompatible_fields):
                                              "valid-replication-keys": "segments__date",
                                              "table-key-properties": key_properties}}]
 
+    # Fields inside fieldExclusions of the Fields which is having automatic inclusion, should always be unselected
+    # as automatic inclusion fields are always selected, hence skipping those Exclusion fields.
+    fields_to_skip = [skip for k in key_properties for skip in incompatible_fields.get(k, [])]
     for key in schema.properties:
+        if key in fields_to_skip:
+            continue
+
         if "object" in schema.properties.get(key).type:
             for prop in schema.properties.get(key).properties:
                 inclusion = "automatic" if prop in key_properties else "available"
@@ -232,7 +238,7 @@ def sync(config, state, catalog):
         while date_to_poll <= end_date:
             # These must be here to reset records/futures from previous date
             futures = []
-            records = []          
+            records = []
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker_threads) as executor:
                 for adwords_account_id in config["customer_ids"]:
                     if "login_customer_id" in config:
@@ -267,9 +273,9 @@ def sync(config, state, catalog):
                     counter.increment()
                     bookmark = max([bookmark, transformed_data[bookmark_column]])
 
-            # DP: Google ads produces tons of data and while this check is the correct
+            # DP: Google Ads produces tons of data and while this check is the correct
             # thing to do in the general case I will disable it
-            
+
             # if records:
 
             state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, bookmark)
