@@ -198,12 +198,21 @@ def get_verified_date_to_poll(stream_id, date_to_poll):
     For "click_view" report query, `WHERE` clause specifying a single day within the last 90 days of current date.
     so, if date_to_poll is less than current date, it will be changed to the least possible date value (today - 90 days)
     """
+    
+    utcnow = datetime.utcnow()
 
     if stream_id == "click_view":
-        minimal_date_to_poll = datetime.utcnow() - timedelta(days=90)
+        minimal_date_to_poll = utcnow - timedelta(days=90)
         if date_to_poll < minimal_date_to_poll:
             date_to_poll = minimal_date_to_poll
+    
+    # fix for data freshness
+    # e.g. Sunday's data is available at 3 AM UTC on Monday
+    # If integration is set to sync at 1AM then a problem occurs
 
+    if date_to_poll >= utcnow - timedelta(days=1):
+        date_to_poll = utcnow - timedelta(days=2)
+    
     return date_to_poll
 
 
