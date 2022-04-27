@@ -216,6 +216,16 @@ def get_verified_date_to_poll(stream_id, date_to_poll):
     return date_to_poll
 
 
+def get_selected_fields_schema(schema, selected_fields: set):
+    schema_properties = schema["properties"]
+    schema_fields = {f for f in schema_properties}
+    unselected_fields = schema_fields.difference(selected_fields)
+    for usf in unselected_fields:
+        schema_properties.pop(usf)
+
+    return schema
+
+
 def sync(config, state, catalog):
     # Loop over selected streams in catalog
     for stream in catalog.get_selected_streams(state):
@@ -225,10 +235,11 @@ def sync(config, state, catalog):
         schema = stream.schema.to_dict()
 
         fields = get_selected_attrs(stream)
+        selected_fields_schema = get_selected_fields_schema(schema, set(fields))
         dynamically_generated_key_fields = get_key_properties(stream.tap_stream_id, fields)
         singer.write_schema(
             stream_name=stream.tap_stream_id,
-            schema=schema,
+            schema=selected_fields_schema,
             key_properties=dynamically_generated_key_fields
         )
 
