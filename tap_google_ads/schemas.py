@@ -165,7 +165,7 @@ def generate_schemas(ga_ads_service):
                         # Along with outer scope attribute_resources, we can have some attribute_resources as a part
                         # of "metrics" or "segments", Hence updating all of them from attribute_resource_fields.
                         # E.x. ad_group, ad_group_ad, campaign
-                        elif name_pos > 0:
+                        else:
                             if m in attribute_resource_fields:
                                 report_schema.update(attribute_resource_fields[m])
         report_schema.update(fetch_resource_fields(ga_ads_service, report))
