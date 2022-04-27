@@ -158,14 +158,16 @@ def generate_schemas(ga_ads_service):
                         m = m.replace(".", "__")
                         # if field name starts with "metrics" or "segments"
                         # E.x. metrics.clicks, segments.device
-                        if m.find(name) == 0:
+                        name_pos = m.find(name)
+                        if name_pos == 0:
                             report_schema[m] = attribute_resource_fields[name][m]
 
                         # Along with outer scope attribute_resources, we can have some attribute_resources as a part
                         # of "metrics" or "segments", Hence updating all of them from attribute_resource_fields.
                         # E.x. ad_group, ad_group_ad, campaign
-                        elif m.find(name) != 0:
-                            report_schema.update(attribute_resource_fields[m])
+                        elif name_pos > 0:
+                            if m in attribute_resource_fields:
+                                report_schema.update(attribute_resource_fields[m])
         report_schema.update(fetch_resource_fields(ga_ads_service, report))
         schema[report] = Schema.from_dict({"type": ["null", "object"],
                                            "properties": report_schema})
