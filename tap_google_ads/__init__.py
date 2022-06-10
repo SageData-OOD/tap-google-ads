@@ -210,8 +210,8 @@ def get_verified_date_to_poll(stream_id, date_to_poll):
     # e.g. Sunday's data is available at 3 AM UTC on Monday
     # If integration is set to sync at 1AM then a problem occurs
 
-    if date_to_poll >= utcnow - timedelta(days=3):
-        date_to_poll = utcnow - timedelta(days=4)
+    if date_to_poll >= utcnow - timedelta(days=14):
+        date_to_poll = utcnow - timedelta(days=14)
     
     return date_to_poll
 
