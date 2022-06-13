@@ -14,7 +14,7 @@ from .schemas import *
 WORKER_THREADS = 10
 LOCK = threading.Lock()
 LOGGER = singer.get_logger()
-
+DEFAULT_CONVERSION_WINDOW = 14
 REQUIRED_CONFIG_KEYS = ["start_date", "end_date", "customer_ids", "client_id", "client_secret", "developer_token",
                         "refresh_token"]
 
@@ -193,10 +193,10 @@ def get_selected_attrs(stream):
     return list_attrs
 
 
-def get_verified_date_to_poll(stream_id, date_to_poll):
+def get_verified_date_to_poll(stream_id, date_to_poll, conversion_window):
     """
     For "click_view" report query, `WHERE` clause specifying a single day within the last 90 days of current date.
-    so, if date_to_poll is less than current date, it will be changed to the least possible date value (today - 90 days)
+    so, if date_to_poll is less than current date, it will be changed to the least possible date value
     """
     
     utcnow = datetime.utcnow()
@@ -210,8 +210,8 @@ def get_verified_date_to_poll(stream_id, date_to_poll):
     # e.g. Sunday's data is available at 3 AM UTC on Monday
     # If integration is set to sync at 1AM then a problem occurs
 
-    if date_to_poll >= utcnow - timedelta(days=14):
-        date_to_poll = utcnow - timedelta(days=14)
+    if date_to_poll >= utcnow - timedelta(days=conversion_window):
+        date_to_poll = utcnow - timedelta(days=conversion_window)
     
     return date_to_poll
 
@@ -250,7 +250,8 @@ def sync(config, state, catalog):
         bookmark = singer.get_bookmark(state, stream.tap_stream_id, bookmark_column) \
             if state.get("bookmarks", {}).get(stream.tap_stream_id) else config["start_date"]
 
-        date_to_poll = get_verified_date_to_poll(stream.tap_stream_id, datetime.strptime(bookmark, "%Y-%m-%d"))
+        conversion_window = config.get("conversion_window", DEFAULT_CONVERSION_WINDOW)
+        date_to_poll = get_verified_date_to_poll(stream.tap_stream_id, datetime.strptime(bookmark, "%Y-%m-%d"), conversion_window)
 
         end_date = datetime.strptime(config["end_date"], "%Y-%m-%d")
         config["use_proto_plus"] = True
