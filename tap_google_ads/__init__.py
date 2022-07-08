@@ -1,5 +1,3 @@
-import os
-import json
 import concurrent.futures
 import threading
 
@@ -12,6 +10,7 @@ from datetime import datetime, timedelta
 from .schemas import *
 
 WORKER_THREADS = 10
+_CLIENT_TIMEOUT_SECONDS = 5 * 60  # 5 minutes per streaming batch request
 LOCK = threading.Lock()
 LOGGER = singer.get_logger()
 DEFAULT_CONVERSION_WINDOW = 14
@@ -158,7 +157,9 @@ def query_report(date_to_poll,
     query = build_query(stream_id, dotted_path_fields, date_to_poll)
     ga_service = googleads_client.get_service("GoogleAdsService", version="v10")
     streams = ga_service.search_stream(
-        customer_id=adwords_account_id, query=query
+        customer_id=adwords_account_id, 
+        query=query,
+        timeout=_CLIENT_TIMEOUT_SECONDS
     )
 
     LOGGER.info("Download %s for account: %s, date: %s", stream_id,
