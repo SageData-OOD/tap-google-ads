@@ -30,7 +30,7 @@ def get_key_properties(stream_name, selected_fields=[]):
         "campaign": ["segments__date", "customer__id", "campaign__id"],
         "click_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id", "click_view__gclid"],
         "geographic_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
-                            "geographic_view__country_criterion_id"],
+                            "geographic_view__country_criterion_id", "geographic_view__location_type"],
         "search_term_view": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
                              "search_term_view__search_term"],
         "video": ["segments__date", "customer__id", "campaign__id", "ad_group__id",
