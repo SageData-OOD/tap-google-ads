@@ -17,7 +17,7 @@ REPORTS = [
 # List of commonly used attribute_resources(along with metrics and segments) supported by available reports
 # TODO: if you add support of new report, all attribute_resources respected to report should be included in the list.
 #     : Here you can check supported resources by reports
-#     : https://developers.google.com/google-ads/api/fields/v10/overview_query_builder
+#     : https://developers.google.com/google-ads/api/fields/v11/overview_query_builder
 LIST_ATTRIBUTE_RESOURCES = [
     "accessible_bidding_strategy",
     "ad_group",
@@ -44,7 +44,7 @@ FIELDS_TYPES_MAPPING = {
 
 # This prefix helps to identify primary key fields(segments) in order to generate dynamic PK.
 # Mostly the Fields under Segments section, but here we are speculating just by selecting segments.
-# Ref(for `video` report): https://developers.google.com/google-ads/api/fields/v10/video_query_builder
+# Ref(for `video` report): https://developers.google.com/google-ads/api/fields/v11/video_query_builder
 KEY_FIELD_PREFIXES = {
     "ad_group": ['segments'],
     "ad_group_ad": ['segments'],
@@ -68,7 +68,7 @@ def get_property_type(prop):
 def query_ads_field_service(ga_ads_service, resource):
     """
     Query to Google Ads Filed Service to get resource's metadata
-    ref: https://developers.google.com/google-ads/api/reference/rpc/v10/GoogleAdsFieldService#searchgoogleadsfields
+    ref: https://developers.google.com/google-ads/api/reference/rpc/v11/GoogleAdsFieldService#searchgoogleadsfields
     """
 
     query = "SELECT name, data_type, selectable_with, metrics, segments, enum_values, attribute_resources, selectable" \
@@ -103,7 +103,7 @@ def get_google_ads_field_service(config):
     """
     config["use_proto_plus"] = True
     googleads_client = GoogleAdsClient.load_from_dict(config)
-    ga_ads_service = googleads_client.get_service("GoogleAdsFieldService", version="v10")
+    ga_ads_service = googleads_client.get_service("GoogleAdsFieldService", version="v11")
     return ga_ads_service
 
 

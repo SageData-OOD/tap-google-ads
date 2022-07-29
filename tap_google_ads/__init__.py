@@ -117,8 +117,8 @@ def json_value_from_dotted_path(path, json_obj):
 
 def build_query(stream_id, fields, date_to_poll):
     """
-    Generate query as per Google_Ads API V10
-    google_ads query builder UI: https://developers.google.cn/google-ads/api/fields/v10/ad_group_ad_query_builder
+    Generate query as per Google_Ads API v11
+    google_ads query builder UI: https://developers.google.cn/google-ads/api/fields/v11/ad_group_ad_query_builder
     """
 
     date = "{:%Y-%m-%d}".format(date_to_poll)
@@ -155,7 +155,7 @@ def query_report(date_to_poll,
                  records):
     dotted_path_fields = [f.replace("__", ".") for f in fields]
     query = build_query(stream_id, dotted_path_fields, date_to_poll)
-    ga_service = googleads_client.get_service("GoogleAdsService", version="v10")
+    ga_service = googleads_client.get_service("GoogleAdsService", version="v11")
     streams = ga_service.search_stream(
         customer_id=adwords_account_id, 
         query=query,
