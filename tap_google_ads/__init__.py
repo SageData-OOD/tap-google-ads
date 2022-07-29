@@ -117,8 +117,8 @@ def json_value_from_dotted_path(path, json_obj):
 
 def build_query(stream_id, fields, date_to_poll):
     """
-    Generate query as per Google_Ads API v11
-    google_ads query builder UI: https://developers.google.cn/google-ads/api/fields/v11/ad_group_ad_query_builder
+    Generate query as per Google_Ads API {GOOGLE_ADS_VERSION}
+    google_ads query builder UI: https://developers.google.cn/google-ads/api/fields/{GOOGLE_ADS_VERSION}/ad_group_ad_query_builder
     """
 
     date = "{:%Y-%m-%d}".format(date_to_poll)
@@ -155,9 +155,9 @@ def query_report(date_to_poll,
                  records):
     dotted_path_fields = [f.replace("__", ".") for f in fields]
     query = build_query(stream_id, dotted_path_fields, date_to_poll)
-    ga_service = googleads_client.get_service("GoogleAdsService", version="v11")
+    ga_service = googleads_client.get_service("GoogleAdsService", version=GOOGLE_ADS_VERSION)
     streams = ga_service.search_stream(
-        customer_id=adwords_account_id, 
+        customer_id=adwords_account_id,
         query=query,
         timeout=_CLIENT_TIMEOUT_SECONDS
     )
@@ -199,21 +199,21 @@ def get_verified_date_to_poll(stream_id, date_to_poll, conversion_window):
     For "click_view" report query, `WHERE` clause specifying a single day within the last 90 days of current date.
     so, if date_to_poll is less than current date, it will be changed to the least possible date value
     """
-    
+
     utcnow = datetime.utcnow()
 
     if stream_id == "click_view":
         minimal_date_to_poll = utcnow - timedelta(days=90)
         if date_to_poll < minimal_date_to_poll:
             date_to_poll = minimal_date_to_poll
-    
+
     # fix for data freshness
     # e.g. Sunday's data is available at 3 AM UTC on Monday
     # If integration is set to sync at 1AM then a problem occurs
 
     if date_to_poll >= utcnow - timedelta(days=conversion_window):
         date_to_poll = utcnow - timedelta(days=conversion_window)
-    
+
     return date_to_poll
 
 
